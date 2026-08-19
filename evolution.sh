@@ -13,14 +13,14 @@ ROM_NAME="Evolution-X"
 ROM_URL="https://github.com/Evolution-X/manifest"
 ROM_BRANCH="cnb"
 
-MANIFEST_URL="https://github.com/dcore-it/manifest_peridot.git"
+MANIFEST_URL="https://github.com/ryznstk/manifest.git"
 
 DEVICE="peridot"
 BUILD_VARIANT="cp2a-user"
 
 export TZ="Asia/Jakarta"
-export BUILD_USERNAME="dcore"
-export BUILD_HOSTNAME="lake"
+export BUILD_USERNAME="ryznstk"
+export BUILD_HOSTNAME="crave"
 
 # -----------------------------
 # Colors
