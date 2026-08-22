@@ -674,7 +674,7 @@ else
 
         echo
         info "$(basename "$FILE")"
-        info "Size: $(du -h "$FILE" | cut -f1)
+        info "Size: $(du -h "$FILE" | cut -f1)"
 
     done
 
