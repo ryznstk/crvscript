@@ -38,6 +38,7 @@ BOLD='\033[1m'
 # -----------------------------
 PIXELDRAIN_URL=""
 GOFILE_URL=""
+SOURCEFORGE_URL=""
 
 JOB_START=$(date +%s)
 
@@ -50,14 +51,14 @@ banner() {
 
     echo -e "${CYAN}${BOLD}"
     echo "╔════════════════════════════════════════════════════════════╗"
-    echo "║                  EVOLUTION-X BUILDER                    ║"
+    echo "║                  EVOLUTION-X BUILDER                      ║"
     echo "╠════════════════════════════════════════════════════════════╣"
-    echo "║ ROM      : Evolution-X                                   ║"
-    echo "║ Device   : peridot                                       ║"
-    echo "║ Variant  : cp2a-user                                     ║"
-    echo "║ Branch   : cnb                                           ║"
-    echo "║ Builder  : dcore                                         ║"
-    echo "║ Host     : lake                                          ║"
+    echo "║ ROM      : Evolution-X                                    ║"
+    echo "║ Device   : peridot                                        ║"
+    echo "║ Variant  : cp2a-user                                      ║"
+    echo "║ Branch   : cnb                                            ║"
+    echo "║ Builder  : ryznstk                                        ║"
+    echo "║ Host     : crave                                          ║"
     echo "╚════════════════════════════════════════════════════════════╝"
     echo -e "${RESET}"
 }
@@ -168,6 +169,10 @@ Variant: ${BUILD_VARIANT}
 📄 ${NAME}
 💾 ${SIZE}"
 
+    # -------------------------------
+    # PixelDrain
+    # -------------------------------
+
     if [[ -n "${PIXELDRAIN_URL}" ]]; then
 
         MESSAGE="${MESSAGE}
@@ -184,6 +189,10 @@ Upload failed/skipped"
 
     fi
 
+    # -------------------------------
+    # GoFile
+    # -------------------------------
+
     if [[ -n "${GOFILE_URL}" ]]; then
 
         MESSAGE="${MESSAGE}
@@ -196,6 +205,26 @@ ${GOFILE_URL}"
         MESSAGE="${MESSAGE}
 
 🔴 GoFile
+Upload failed/skipped"
+
+    fi
+
+    # -------------------------------
+    # SourceForge
+    # -------------------------------
+
+    if [[ -n "${SOURCEFORGE_URL}" ]]; then
+
+        MESSAGE="${MESSAGE}
+
+🟢 SourceForge
+${SOURCEFORGE_URL}"
+
+    else
+
+        MESSAGE="${MESSAGE}
+
+🔴 SourceForge
 Upload failed/skipped"
 
     fi
@@ -319,6 +348,65 @@ upload_gofile() {
 }
 
 # ============================================================
+# SourceForge Upload
+# ============================================================
+
+upload_sourceforge() {
+
+    local FILE="$1"
+
+    SOURCEFORGE_URL=""
+
+    if [[ ! -f "$FILE" ]]; then
+        fail "File not found: $FILE"
+        return 1
+    fi
+
+    if [[ -z "${SOURCEFORGE_USERNAME:-}" ]]; then
+        warn "SOURCEFORGE_USERNAME not set"
+        return 1
+    fi
+
+    if [[ -z "${SOURCEFORGE_PROJECT:-}" ]]; then
+        warn "SOURCEFORGE_PROJECT not set"
+        return 1
+    fi
+
+    if ! command -v scp >/dev/null 2>&1; then
+        fail "scp is missing"
+        return 1
+    fi
+
+    section "SourceForge Upload"
+
+    info "File: $(basename "$FILE")"
+    info "Size: $(du -h "$FILE" | cut -f1)"
+    info "Project: ${SOURCEFORGE_PROJECT}"
+
+    local UPLOAD_PATH
+
+    UPLOAD_PATH="${SOURCEFORGE_USERNAME}@frs.sourceforge.net:/home/frs/project/${SOURCEFORGE_PROJECT}"
+
+    if scp \
+        -o StrictHostKeyChecking=accept-new \
+        "$FILE" \
+        "$UPLOAD_PATH"
+    then
+
+        SOURCEFORGE_URL="https://sourceforge.net/projects/${SOURCEFORGE_PROJECT}/files/"
+
+        ok "SourceForge upload complete"
+        info "$SOURCEFORGE_URL"
+
+    else
+
+        fail "SourceForge upload failed"
+        return 1
+
+    fi
+}
+
+# ============================================================
 # Start
 # ============================================================
 
@@ -343,6 +431,11 @@ command -v curl >/dev/null || {
 
 command -v jq >/dev/null || {
     fail "jq is missing"
+    exit 1
+}
+
+command -v scp >/dev/null || {
+    fail "scp is missing"
     exit 1
 }
 
@@ -398,25 +491,50 @@ SYNC_START=$(date +%s)
 if [[ -x "/opt/crave/resync.sh" ]]; then
 
     info "Using Crave resync"
-    /opt/crave/resync.sh
+
+    if /opt/crave/resync.sh; then
+
+        ok "Crave resync complete"
+
+    else
+
+        warn "Crave resync returned an error"
+        warn "Starting forced repo sync..."
+
+        repo sync \
+            -c \
+            --force-sync \
+            --force-remove-dirty \
+            --no-tags \
+            --no-clone-bundle \
+            || {
+                warn "Forced repo sync returned an error"
+                warn "Continuing build anyway..."
+            }
+
+    fi
 
 else
 
     warn "Crave resync not found"
-    info "Using repo sync"
+    info "Using forced repo sync"
 
     repo sync \
         -c \
         --force-sync \
+        --force-remove-dirty \
         --no-tags \
         --no-clone-bundle \
-        --force-remove-dirty
+        || {
+            warn "Repo sync returned an error"
+            warn "Continuing build anyway..."
+        }
 
 fi
 
 SYNC_END=$(date +%s)
 
-ok "Source sync complete"
+ok "Source sync stage finished"
 info "Sync time: $(((SYNC_END - SYNC_START) / 60)) minutes"
 
 # ============================================================
@@ -510,12 +628,12 @@ info "Build time: ${BUILD_MINUTES} minutes"
 # Find Artifacts
 # ============================================================
 
-section "Finding Build Artifacts"
+section "Finding Build ZIP"
 
 ARTIFACTS=()
 
 # ------------------------------------------------------------
-# ROM ZIP
+# ROM ZIP ONLY
 # ------------------------------------------------------------
 
 while IFS= read -r -d '' FILE; do
@@ -532,53 +650,31 @@ done < <(
         -print0
 )
 
-# ------------------------------------------------------------
-# Selected Images ONLY
-# ------------------------------------------------------------
-
-SELECTED_IMAGES=(
-    "boot.img"
-    "vendor_boot.img"
-    "dtbo.img"
-    "recovery.img"
-)
-
-for IMAGE in "${SELECTED_IMAGES[@]}"; do
-
-    IMAGE_PATH="out/target/product/${DEVICE}/${IMAGE}"
-
-    if [[ -f "${IMAGE_PATH}" ]]; then
-
-        ARTIFACTS+=("${IMAGE_PATH}")
-
-    fi
-
-done
-
 # ============================================================
 # Artifact Check
 # ============================================================
 
 if [[ ${#ARTIFACTS[@]} -eq 0 ]]; then
 
-    warn "No supported artifacts found"
+    warn "No ROM ZIP found"
 
     tg_send "⚠️ Evolution-X build completed
 
 Device: ${DEVICE}
 Variant: ${BUILD_VARIANT}
 
-No ROM ZIP or selected images were found."
+❌ No ROM ZIP was found.
+Upload skipped."
 
 else
 
-    ok "Found ${#ARTIFACTS[@]} artifact(s)"
+    ok "Found ${#ARTIFACTS[@]} ROM ZIP(s)"
 
     for FILE in "${ARTIFACTS[@]}"; do
 
         echo
         info "$(basename "$FILE")"
-        info "Size: $(du -h "$FILE" | cut -f1)"
+        info "Size: $(du -h "$FILE" | cut -f1)
 
     done
 
@@ -590,9 +686,13 @@ else
 
         PIXELDRAIN_URL=""
         GOFILE_URL=""
+        SOURCEFORGE_URL=""
 
         echo
+
         section "Uploading $(basename "$FILE")"
+
+        info "ZIP only"
 
         # -------------------------------
         # PixelDrain
@@ -605,6 +705,12 @@ else
         # -------------------------------
 
         upload_gofile "$FILE" || true
+
+        # -------------------------------
+        # SourceForge
+        # -------------------------------
+
+        upload_sourceforge "$FILE" || true
 
         # -------------------------------
         # Telegram
@@ -631,8 +737,9 @@ info "Total time: ${TOTAL_MINUTES} minutes"
 notify_finished "${TOTAL_MINUTES}"
 
 echo
+
 echo -e "${GREEN}${BOLD}"
 echo "╔════════════════════════════════════════════════════════════╗"
-echo "║                  EVOLUTION-X COMPLETE                   ║"
+echo "║                  EVOLUTION-X COMPLETE                      ║"
 echo "╚════════════════════════════════════════════════════════════╝"
 echo -e "${RESET}"
