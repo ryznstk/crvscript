@@ -560,7 +560,7 @@ fi
 
 section "Selecting Build Target"
 
-lunch riseup peridot user
+riseup peridot user
 
 ok "Target: riseup peridot user"
 
