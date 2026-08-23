@@ -378,7 +378,8 @@ section "Initializing RisingOS"
 repo init \
     -u "${ROM_URL}" \
     -b "${ROM_BRANCH}" \
-    --git-lfs
+    --git-lfs \
+    --depth=1
 
 ok "RisingOS repository initialized"
 
