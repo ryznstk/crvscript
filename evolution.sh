@@ -17,6 +17,7 @@ MANIFEST_URL="https://github.com/ryznstk/manifest.git"
 
 DEVICE="peridot"
 BUILD_VARIANT="cp2a-user"
+LUNCH_TARGET="lineage_peridot-cp2a-user"
 
 export TZ="Asia/Jakarta"
 export BUILD_USERNAME="ryznstk"
@@ -50,38 +51,42 @@ banner() {
 
     echo -e "${CYAN}${BOLD}"
     echo "╔════════════════════════════════════════════════════════════╗"
-    echo "║                  EVOLUTION-X BUILDER                      ║"
+    echo "║                                                            ║"
+    echo "║        ███████╗██╗   ██╗ ██████╗ ██╗  ██╗                ║"
+    echo "║        ██╔════╝██║   ██║██╔═══██╗╚██╗██╔╝                ║"
+    echo "║        █████╗  ██║   ██║██║   ██║ ╚███╔╝                 ║"
+    echo "║        ██╔══╝  ╚██╗ ██╔╝██║   ██║ ██╔██╗                 ║"
+    echo "║        ███████╗ ╚████╔╝ ╚██████╔╝██╔╝ ██╗                ║"
+    echo "║        ╚══════╝  ╚═══╝   ╚═════╝ ╚═╝  ╚═╝                ║"
+    echo "║                                                            ║"
+    echo "║              E V O L U T I O N   X                       ║"
+    echo "║              Automated Release Builder                    ║"
+    echo "║                                                            ║"
     echo "╠════════════════════════════════════════════════════════════╣"
-    echo "║ ROM      : Evolution-X                                    ║"
-    echo "║ Device   : peridot                                        ║"
-    echo "║ Variant  : cp2a-user                                      ║"
-    echo "║ Branch   : cnb                                            ║"
-    echo "║ Builder  : ryznstk                                        ║"
-    echo "║ Host     : crave                                          ║"
+    echo "║  Device     : POCO F6 / peridot                           ║"
+    echo "║  Build      : cp2a-user                                   ║"
+    echo "║  Branch     : cnb                                         ║"
+    echo "║  Release    : ZIP only                                    ║"
+    echo "║  Upload     : PixelDrain + GoFile                        ║"
+    echo "║  Notify     : Telegram                                    ║"
     echo "╚════════════════════════════════════════════════════════════╝"
     echo -e "${RESET}"
 }
 
-section() {
+description() {
     echo
-    echo -e "${CYAN}${BOLD}▶ $1${RESET}"
-    echo -e "${CYAN}────────────────────────────────────────────────────────────${RESET}"
-}
-
-ok() {
-    echo -e "${GREEN}${BOLD}✔ $1${RESET}"
-}
-
-info() {
-    echo -e "${BLUE}➜ $1${RESET}"
-}
-
-warn() {
-    echo -e "${YELLOW}⚠ $1${RESET}"
-}
-
-fail() {
-    echo -e "${RED}${BOLD}✖ $1${RESET}"
+    echo -e "${CYAN}${BOLD}╭────────────────────────────────────────────────────────────╮${RESET}"
+    echo -e "${CYAN}${BOLD}│ ABOUT                                                      │${RESET}"
+    echo -e "${CYAN}${BOLD}├────────────────────────────────────────────────────────────┤${RESET}"
+    echo -e "${CYAN}│${RESET} Evolution-X automated build and release script for       ${CYAN}│${RESET}"
+    echo -e "${CYAN}│${RESET} ${BOLD}POCO F6 (peridot)${RESET}.                                       ${CYAN}│${RESET}"
+    echo -e "${CYAN}│${RESET}                                                            ${CYAN}│${RESET}"
+    echo -e "${CYAN}│${RESET} Source → Sync → Build → Package → Upload → Notify         ${CYAN}│${RESET}"
+    echo -e "${CYAN}│${RESET}                                                            ${CYAN}│${RESET}"
+    echo -e "${CYAN}│${RESET} The final ROM ZIP is uploaded to PixelDrain and GoFile,   ${CYAN}│${RESET}"
+    echo -e "${CYAN}│${RESET} then the download links are sent to Telegram automatically.${CYAN}│${RESET}"
+    echo -e "${CYAN}╰────────────────────────────────────────────────────────────╯${RESET}"
+    echo
 }
 
 # ============================================================
@@ -476,11 +481,24 @@ fi
 # Lunch
 # ============================================================
 
-section "Selecting Build Target"
+section "Build Configuration"
 
-lunch lineage_peridot-cp2a-user
+echo -e "${CYAN}${BOLD}"
+echo "╭────────────────────────────────────────────────────────────╮"
+echo "│ TARGET                                                     │"
+echo "├────────────────────────────────────────────────────────────┤"
+echo "│ Device     : POCO F6 / peridot                            │"
+echo "│ Product    : lineage_peridot                              │"
+echo "│ Variant    : cp2a-user                                    │"
+echo "│ Build type : User                                         │"
+echo "╰────────────────────────────────────────────────────────────╯"
+echo -e "${RESET}"
 
-ok "Target: lineage_peridot-cp2a-user"
+info "Selecting target: ${LUNCH_TARGET}"
+
+lunch "${LUNCH_TARGET}"
+
+ok "Build target selected: ${LUNCH_TARGET}"
 
 # ============================================================
 # Telegram
@@ -545,7 +563,8 @@ info "Build time: ${BUILD_MINUTES} minutes"
 # Find Artifacts
 # ============================================================
 
-section "Finding Build ZIP"
+section "Release Artifact"
+info "Searching for the final Evolution-X ZIP (target_files and OTA helper ZIPs excluded)"
 
 ARTIFACTS=()
 
@@ -606,8 +625,10 @@ else
 
         echo
 
-        section "Uploading $(basename "$FILE")"
+        section "Release Uploads"
 
+        info "Artifact: $(basename "$FILE")"
+        info "Destinations: PixelDrain + GoFile"
         info "ZIP only"
 
         # -------------------------------
