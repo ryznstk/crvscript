@@ -38,7 +38,6 @@ BOLD='\033[1m'
 # -----------------------------
 PIXELDRAIN_URL=""
 GOFILE_URL=""
-SOURCEFORGE_URL=""
 
 JOB_START=$(date +%s)
 
@@ -209,26 +208,6 @@ Upload failed/skipped"
 
     fi
 
-    # -------------------------------
-    # SourceForge
-    # -------------------------------
-
-    if [[ -n "${SOURCEFORGE_URL}" ]]; then
-
-        MESSAGE="${MESSAGE}
-
-🟢 SourceForge
-${SOURCEFORGE_URL}"
-
-    else
-
-        MESSAGE="${MESSAGE}
-
-🔴 SourceForge
-Upload failed/skipped"
-
-    fi
-
     tg_send "$MESSAGE"
 }
 
@@ -347,64 +326,6 @@ upload_gofile() {
     info "$GOFILE_URL"
 }
 
-# ============================================================
-# SourceForge Upload
-# ============================================================
-
-upload_sourceforge() {
-
-    local FILE="$1"
-
-    SOURCEFORGE_URL=""
-
-    if [[ ! -f "$FILE" ]]; then
-        fail "File not found: $FILE"
-        return 1
-    fi
-
-    if [[ -z "${SOURCEFORGE_USERNAME:-}" ]]; then
-        warn "SOURCEFORGE_USERNAME not set"
-        return 1
-    fi
-
-    if [[ -z "${SOURCEFORGE_PROJECT:-}" ]]; then
-        warn "SOURCEFORGE_PROJECT not set"
-        return 1
-    fi
-
-    if ! command -v scp >/dev/null 2>&1; then
-        fail "scp is missing"
-        return 1
-    fi
-
-    section "SourceForge Upload"
-
-    info "File: $(basename "$FILE")"
-    info "Size: $(du -h "$FILE" | cut -f1)"
-    info "Project: ${SOURCEFORGE_PROJECT}"
-
-    local UPLOAD_PATH
-
-    UPLOAD_PATH="${SOURCEFORGE_USERNAME}@frs.sourceforge.net:/home/frs/project/${SOURCEFORGE_PROJECT}"
-
-    if scp \
-        -o StrictHostKeyChecking=accept-new \
-        "$FILE" \
-        "$UPLOAD_PATH"
-    then
-
-        SOURCEFORGE_URL="https://sourceforge.net/projects/${SOURCEFORGE_PROJECT}/files/"
-
-        ok "SourceForge upload complete"
-        info "$SOURCEFORGE_URL"
-
-    else
-
-        fail "SourceForge upload failed"
-        return 1
-
-    fi
-}
 
 # ============================================================
 # Start
@@ -434,10 +355,6 @@ command -v jq >/dev/null || {
     exit 1
 }
 
-command -v scp >/dev/null || {
-    fail "scp is missing"
-    exit 1
-}
 
 ok "Dependencies ready"
 
@@ -686,7 +603,6 @@ else
 
         PIXELDRAIN_URL=""
         GOFILE_URL=""
-        SOURCEFORGE_URL=""
 
         echo
 
@@ -705,12 +621,6 @@ else
         # -------------------------------
 
         upload_gofile "$FILE" || true
-
-        # -------------------------------
-        # SourceForge
-        # -------------------------------
-
-        upload_sourceforge "$FILE" || true
 
         # -------------------------------
         # Telegram
