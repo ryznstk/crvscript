@@ -35,6 +35,33 @@ CYAN='\033[36m'
 BOLD='\033[1m'
 
 # -----------------------------
+# Output Helpers
+# -----------------------------
+section() {
+    echo
+    echo -e "${CYAN}${BOLD}╔════════════════════════════════════════════════════════════╗${RESET}"
+    printf "${CYAN}${BOLD}║  %-56s║${RESET}\n" "$1"
+    echo -e "${CYAN}${BOLD}╚════════════════════════════════════════════════════════════╝${RESET}"
+}
+
+info() {
+    echo -e "${BLUE}ℹ ${RESET}$1"
+}
+
+ok() {
+    echo -e "${GREEN}✔ ${RESET}$1"
+}
+
+warn() {
+    echo -e "${YELLOW}⚠ ${RESET}$1"
+}
+
+fail() {
+    echo -e "${RED}✖ ${RESET}$1"
+}
+
+
+# -----------------------------
 # Runtime variables
 # -----------------------------
 PIXELDRAIN_URL=""
