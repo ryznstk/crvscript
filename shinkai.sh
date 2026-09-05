@@ -488,7 +488,7 @@ info "Sync time: $(((SYNC_END - SYNC_START) / 60)) minutes"
 
 section "Loading Build Environment"
 
-. build/envsetup.sh
+. b*/env*
 
 ok "Build environment loaded"
 
