@@ -10,7 +10,7 @@ set -e
 # ROM Configuration
 # -----------------------------
 ROM_NAME="Shinkai"
-ROM_URL="https://github.com/ShinkaiProject/shinkai_manifest.git"
+ROM_URL="https://github.com/ryznstk/platform_manifest.git"
 ROM_BRANCH="heptakaideka"
 
 MANIFEST_URL="https://github.com/ryznstk/manifest.git"
