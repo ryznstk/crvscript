@@ -488,7 +488,7 @@ info "Sync time: $(((SYNC_END - SYNC_START) / 60)) minutes"
 
 section "Loading Build Environment"
 
-. b*/env*
+. build/envsetup.sh
 
 ok "Build environment loaded"
 
@@ -501,7 +501,7 @@ if [[ -f ".env" ]]; then
 fi
 
 # ============================================================
-# Lunch
+# Build Configuration
 # ============================================================
 
 section "Build Configuration"
@@ -516,8 +516,6 @@ echo "│ Variant    : user                                          │"
 echo "│ Build cmd  : breakfast peridot user → mka shinkai         │"
 echo "╰────────────────────────────────────────────────────────────╯"
 echo -e "${RESET}"
-
-
 
 # ============================================================
 # Telegram
@@ -544,26 +542,18 @@ section "Building Shinkai"
 BUILD_START=$(date +%s)
 
 if breakfast peridot user; then
-
     ok "Breakfast completed"
-
 else
-
     fail "Breakfast failed"
     exit 1
-
 fi
 
 info "Building Shinkai..."
 
 if mka shinkai; then
-
     BUILD_SUCCESS=1
-
 else
-
     BUILD_SUCCESS=0
-
 fi
 
 BUILD_END=$(date +%s)
