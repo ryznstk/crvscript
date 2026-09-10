@@ -393,8 +393,6 @@ ok "Dependencies ready"
 section "Preparing Workspace"
 
 rm -rf .repo/local_manifests
-rm -rf "device/xiaomi/${DEVICE}"
-rm -rf "out/target/product/${DEVICE}"
 
 ok "Workspace cleaned"
 
@@ -433,7 +431,9 @@ section "Syncing Source"
 
 SYNC_START=$(date +%s)
 
-if [[ -x "/opt/crave/resync.sh" ]]; then
+if [[ -x "rm -rf "device/xiaomi/${DEVICE}"
+rm -rf "out/target/product/${DEVICE}"
+/opt/crave/resync.sh" ]]; then
 
     info "Using Crave resync"
 
@@ -513,13 +513,11 @@ echo "├───────────────────────�
 echo "│ Device     : POCO F6 / peridot                            │"
 echo "│ Product    : peridot                                       │"
 echo "│ Variant    : user                                          │"
-echo "│ Build cmd  : breakfast peridot user                        │"
+echo "│ Build cmd  : breakfast peridot user → mka shinkai         │"
 echo "╰────────────────────────────────────────────────────────────╯"
 echo -e "${RESET}"
 
-info "Build command: breakfast peridot user"
 
-ok "Shinkai target configured"
 
 # ============================================================
 # Telegram
