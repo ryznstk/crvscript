@@ -541,8 +541,8 @@ section "Building Shinkai"
 
 BUILD_START=$(date +%s)
 
-if breakfast peridot user; then
-    ok "Breakfast completed"
+if breakfast ${LUNCH_TARGET}; then
+    ok "Shinkai target configured"
 else
     fail "Breakfast failed"
     exit 1
