@@ -17,7 +17,7 @@ MANIFEST_URL="https://github.com/ryznstk/manifest.git"
 
 DEVICE="peridot"
 BUILD_VARIANT="user"
-LUNCH_TARGET="ininity_peridot-user"
+LUNCH_TARGET="infinity_peridot-user"
 
 export TZ="Asia/Jakarta"
 export BUILD_USERNAME="ryznstk"
