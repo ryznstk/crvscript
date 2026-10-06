@@ -492,7 +492,13 @@ info "Sync time: $(((SYNC_END - SYNC_START) / 60)) minutes"
 
 section "Loading Build Environment"
 
-. build/envsetup.sh
+if [[ -z "${ANDROID_BUILD_TOP:-}" ]]; then
+    section "Loading Build Environment"
+    . build/envsetup.sh
+    ok "Build environment loaded"
+else
+    info "Build environment already loaded - skipping envsetup.sh"
+fi
 
 ok "Build environment loaded"
 
